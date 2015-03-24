@@ -32,6 +32,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableModel;
 
 @SuppressWarnings("serial")
+// Clase frame
 public class TPVJFrame extends JFrame {
 
     //----------CONSTANTES
