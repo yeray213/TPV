@@ -45,6 +45,10 @@ public class TPVJFrame extends JFrame {
     private HashMap<String, ProductoPedido> listaPedidos; // Aqui se almacenan los productos pedidos
     private JPanel jPanelListaProductos; // Panel donde van apareciendo los productos de las distintas familias
     private JTable tabla;
+    
+    //---------- CTPV
+    //Instanciar un CTPV
+    static CTPV ctpv;
 
     //---------- CONSTRUCTOR
     /**
@@ -53,7 +57,7 @@ public class TPVJFrame extends JFrame {
     public TPVJFrame() {
         super("TPV");
         crearVentana();
-        setVisible(true);
+        setVisible(true);       
     }
 
     //----------METODOS
@@ -349,5 +353,8 @@ public class TPVJFrame extends JFrame {
 
     public static void main(String[] args) {
         TPVJFrame ventana = new TPVJFrame();
+                        
+        //ctpv
+        ctpv = new CTPV();
     }
 }
