@@ -5,7 +5,11 @@
  */
 package tpv;
 
-import javax.swing.JPanel;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -16,12 +20,11 @@ public class CTPV extends javax.swing.JFrame {
     /**
      * Creates new form CTPV
      */
-    public CTPV() {
+    public CTPV() throws IOException {
         initComponents();
 
-        //Creo el hilo para crear la ventana interna 
-        Thread hilo = new Thread(new HiloCTPV(this));
-        hilo.start();
+        Thread escuchador = new Thread(new HiloEscuchador(this));
+        escuchador.start();
     }
 
     /**
@@ -34,17 +37,8 @@ public class CTPV extends javax.swing.JFrame {
     private void initComponents() {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 304, Short.MAX_VALUE)
-        );
+        setMinimumSize(new java.awt.Dimension(1000, 600));
+        getContentPane().setLayout(new java.awt.GridLayout(0, 4));
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -79,7 +73,11 @@ public class CTPV extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new CTPV().setVisible(true);
+                try {
+                    new CTPV().setVisible(true);
+                } catch (IOException ex) {
+                    Logger.getLogger(CTPV.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         });
     }

@@ -12,8 +12,13 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import javax.swing.ImageIcon;
@@ -25,7 +30,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -45,10 +49,6 @@ public class TPVJFrame extends JFrame {
     private HashMap<String, ProductoPedido> listaPedidos; // Aqui se almacenan los productos pedidos
     private JPanel jPanelListaProductos; // Panel donde van apareciendo los productos de las distintas familias
     private JTable tabla;
-    
-    //---------- CTPV
-    //Instanciar un CTPV
-    static CTPV ctpv;
 
     //---------- CONSTRUCTOR
     /**
@@ -57,7 +57,7 @@ public class TPVJFrame extends JFrame {
     public TPVJFrame() {
         super("TPV");
         crearVentana();
-        setVisible(true);       
+        setVisible(true);
     }
 
     //----------METODOS
@@ -114,7 +114,9 @@ public class TPVJFrame extends JFrame {
         jButtonSalir.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
+                //Cerrar el programa TPV y la ventana correspondiente del CTPV
                 System.exit(0);
+
             }
         });
         jPanelIzquierdo.add(jButtonSalir);
@@ -298,16 +300,15 @@ public class TPVJFrame extends JFrame {
         int cantidad = 1;
         float total = precio;
         if (listaPedidos.containsKey(nombre)) {
-            if(nombre.equals(nombre)){
+            if (nombre.equals(nombre)) {
                 total = listaPedidos.get(nombre).getTotal() + precio;
             }
             cantidad = listaPedidos.get(nombre).getCantidad() + 1;
         }
         ProductoPedido nuevoPedido;
-        if(nombre.equals("Otros")){
-            nuevoPedido= new ProductoOtros(nombre, precio, cantidad, total);
-        }
-        else{
+        if (nombre.equals("Otros")) {
+            nuevoPedido = new ProductoOtros(nombre, precio, cantidad, total);
+        } else {
             nuevoPedido = new ProductoPedido(nombre, precio, cantidad);
         }
         listaPedidos.put(nombre, nuevoPedido);
@@ -332,7 +333,7 @@ public class TPVJFrame extends JFrame {
         for (String string : listaPedidos.keySet()) {
             total += listaPedidos.get(string).getTotal();
         }
-        String val = total +"";
+        String val = total + "";
         BigDecimal big = new BigDecimal(val);
         big = big.setScale(2, RoundingMode.HALF_UP);
         jLabelTotal.setText("" + big);
@@ -346,15 +347,28 @@ public class TPVJFrame extends JFrame {
         actualizarTabla();
         actualizarTotal();
     }
-    
-    private void crearCalculadora (){
+
+    private void crearCalculadora() {
         Calculadora calculadora = new Calculadora(this);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         TPVJFrame ventana = new TPVJFrame();
+
+        //---------- CTPV
+        abrirCTPV();
+    }
+
+    public static void abrirCTPV() {
+
+        try {
+            //Abrir socket
+            Socket cliente = new Socket("localhost", 3000);         
+
+            cliente.close();
                         
-        //ctpv
-        ctpv = new CTPV();
+        } catch (IOException ex) {
+            System.out.println(ex);
+        }
     }
 }
