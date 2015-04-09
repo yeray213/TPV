@@ -12,15 +12,21 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 
 import javax.swing.JButton;
@@ -50,6 +56,9 @@ public class TPVJFrame extends JFrame {
     private JPanel jPanelListaProductos; // Panel donde van apareciendo los productos de las distintas familias
     private JTable tabla;
 
+    //Abrir socket
+    Socket cliente;
+
     //---------- CONSTRUCTOR
     /**
      * Crea una vista del TPV, iniciando toddos sus componentes.
@@ -58,6 +67,9 @@ public class TPVJFrame extends JFrame {
         super("TPV");
         crearVentana();
         setVisible(true);
+        
+        //---------- CTPV
+        abrirCTPV();
     }
 
     //----------METODOS
@@ -71,9 +83,28 @@ public class TPVJFrame extends JFrame {
         crearEncabezado();
         crearZonaProductos();
         crearZonaFactura();
+
+        //Hago escuchador a una ventana, para cuando la cierre cerrar el tpv
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent ev) {
+                cerrarVentana();
+            }
+        });
+
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         add(jPanelTPV);
         pack();
+    }
+
+    //Metodo para cerrar la ventana y enviar el mensaje al servidor 
+    //para que cierre el tpv correspondiente
+    public void cerrarVentana() {        
+        try {            
+            //Cierro el socket
+            cliente.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
     /**
@@ -354,19 +385,15 @@ public class TPVJFrame extends JFrame {
 
     public static void main(String[] args) throws IOException {
         TPVJFrame ventana = new TPVJFrame();
-
-        //---------- CTPV
-        abrirCTPV();
     }
 
-    public static void abrirCTPV() {
+    public void abrirCTPV() {
 
         try {
-            //Abrir socket
-            Socket cliente = new Socket("localhost", 3000);         
+            //Socket de comunicacion
+            cliente = new Socket("localhost", 3000);
+            
 
-            cliente.close();
-                        
         } catch (IOException ex) {
             System.out.println(ex);
         }
