@@ -10,6 +10,8 @@ import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -22,6 +24,7 @@ import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,6 +58,8 @@ public class TPVJFrame extends JFrame {
     private HashMap<String, ProductoPedido> listaPedidos; // Aqui se almacenan los productos pedidos
     private JPanel jPanelListaProductos; // Panel donde van apareciendo los productos de las distintas familias
     private JTable tabla;
+    
+    private int numeroServidor;
 
     //Abrir socket
     Socket cliente;
@@ -67,7 +72,7 @@ public class TPVJFrame extends JFrame {
         super("TPV");
         crearVentana();
         setVisible(true);
-        
+
         //---------- CTPV
         abrirCTPV();
     }
@@ -80,6 +85,12 @@ public class TPVJFrame extends JFrame {
         jPanelTPV = new JPanel(new BorderLayout(10, 10));
         jPanelTPV.setBorder(new EmptyBorder(15, 15, 15, 15));
         jPanelTPV.setBackground(AZUL_CLARO);
+
+        //Establecer el icono y el titulo
+        ImageIcon icono = new ImageIcon("..\\TPV\\src\\imagenes\\tpv1.png"); 
+        this.setIconImage(icono.getImage()); 
+        this.setTitle("POP-TPV");
+        
         crearEncabezado();
         crearZonaProductos();
         crearZonaFactura();
@@ -98,8 +109,8 @@ public class TPVJFrame extends JFrame {
 
     //Metodo para cerrar la ventana y enviar el mensaje al servidor 
     //para que cierre el tpv correspondiente
-    public void cerrarVentana() {        
-        try {            
+    public void cerrarVentana() {
+        try {
             //Cierro el socket
             cliente.close();
         } catch (IOException ex) {
@@ -342,11 +353,28 @@ public class TPVJFrame extends JFrame {
         } else {
             nuevoPedido = new ProductoPedido(nombre, precio, cantidad);
         }
+        
+        //ENVIO DE DATOS
+        enviarProducto(nuevoPedido);
+        
         listaPedidos.put(nombre, nuevoPedido);
         actualizarTabla();
         actualizarTotal();
     }
 
+    //METODO PARA ENVIAR LOS DATOS AL CTPV
+    public void enviarProducto(ProductoPedido nuevoPedido){
+        try {
+            Socket clientePedido = new Socket("localhost", 5000 + numeroServidor);
+            
+            ObjectOutputStream out = new ObjectOutputStream(clientePedido.getOutputStream());
+            
+            out.writeObject(nuevoPedido);
+        } catch (IOException ex) {
+            Logger.getLogger(TPVJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     public void actualizarTabla() {
 
         int a = modeloTabla.getRowCount() - 1;
@@ -392,10 +420,13 @@ public class TPVJFrame extends JFrame {
         try {
             //Socket de comunicacion
             cliente = new Socket("localhost", 3000);
-            
 
-        } catch (IOException ex) {
-            System.out.println(ex);
+            //
+            ObjectInputStream in = new ObjectInputStream(cliente.getInputStream());
+            numeroServidor = (int) in.readObject();
+            
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 }
