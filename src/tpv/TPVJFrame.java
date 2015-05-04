@@ -58,7 +58,7 @@ public class TPVJFrame extends JFrame {
     private HashMap<String, ProductoPedido> listaPedidos; // Aqui se almacenan los productos pedidos
     private JPanel jPanelListaProductos; // Panel donde van apareciendo los productos de las distintas familias
     private JTable tabla;
-    
+
     private int numeroServidor;
 
     //Abrir socket
@@ -87,10 +87,10 @@ public class TPVJFrame extends JFrame {
         jPanelTPV.setBackground(AZUL_CLARO);
 
         //Establecer el icono y el titulo
-        ImageIcon icono = new ImageIcon("..\\TPV\\src\\imagenes\\tpv1.png"); 
-        this.setIconImage(icono.getImage()); 
+        ImageIcon icono = new ImageIcon("..\\TPV\\src\\imagenes\\tpv1.png");
+        this.setIconImage(icono.getImage());
         this.setTitle("POP-TPV");
-        
+
         crearEncabezado();
         crearZonaProductos();
         crearZonaFactura();
@@ -353,28 +353,28 @@ public class TPVJFrame extends JFrame {
         } else {
             nuevoPedido = new ProductoPedido(nombre, precio, cantidad);
         }
-        
+
         //ENVIO DE DATOS
         enviarProducto(nuevoPedido);
-        
+
         listaPedidos.put(nombre, nuevoPedido);
         actualizarTabla();
         actualizarTotal();
     }
 
     //METODO PARA ENVIAR LOS DATOS AL CTPV
-    public void enviarProducto(ProductoPedido nuevoPedido){
+    public void enviarProducto(ProductoPedido nuevoPedido) {
         try {
             Socket clientePedido = new Socket("localhost", 5000 + numeroServidor);
-            
+
             ObjectOutputStream out = new ObjectOutputStream(clientePedido.getOutputStream());
-            
+
             out.writeObject(nuevoPedido);
         } catch (IOException ex) {
             Logger.getLogger(TPVJFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void actualizarTabla() {
 
         int a = modeloTabla.getRowCount() - 1;
@@ -424,9 +424,11 @@ public class TPVJFrame extends JFrame {
             //
             ObjectInputStream in = new ObjectInputStream(cliente.getInputStream());
             numeroServidor = (int) in.readObject();
-            
+
         } catch (Exception ex) {
-            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "El servidor no puede atender más usuarios",
+                    "Aviso", JOptionPane.INFORMATION_MESSAGE);
+            System.exit(0);
         }
     }
 }
