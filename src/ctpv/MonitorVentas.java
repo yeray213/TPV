@@ -3,16 +3,24 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package ctpv;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.io.ObjectOutputStream;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.Signature;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import javax.swing.ImageIcon;
 
 /**
@@ -21,20 +29,22 @@ import javax.swing.ImageIcon;
  */
 public class MonitorVentas extends javax.swing.JFrame {
 
-    
     /**
      * Creates new form MonitorVentas
      */
     public MonitorVentas() {
         initComponents();
-        
+
         //Establecer el icono
         ImageIcon icono = new ImageIcon("..\\TPV\\src\\imagenes\\billete.png");
         this.setIconImage(icono.getImage());
-        
+
         //Hilo escuchador, para liberar la interfaz
         Thread escuchador = new Thread(new HiloMonitor(jTextFieldLineas, jTextFieldManana, jTextFieldTarde));
         escuchador.start();
+
+        //Comprobar que las claves existen y sino las creamos
+        comprobarClaves();
     }
 
     /**
@@ -123,7 +133,70 @@ public class MonitorVentas extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTextFieldTardeActionPerformed
 
-        
+    public void comprobarClaves() {
+        try {
+            //Comprobar si existe, ya que si no existe, va al catch
+            FileInputStream fiPu = new FileInputStream(("publica.txt"));
+            FileInputStream fiPri = new FileInputStream(("privada.txt"));
+
+            byte[] cPublicaCompleta = new byte[1024];
+            fiPu.read(cPublicaCompleta);
+
+            byte[] cPrivadaCompleta = new byte[1024];
+            fiPri.read(cPrivadaCompleta);
+
+            //Creamos un almacen de claves
+            KeyFactory keyDSA = KeyFactory.getInstance("DSA");
+
+            //Desencriptamos el array de bytes que ya hemos obtenido
+            PKCS8EncodedKeySpec pk8s = new PKCS8EncodedKeySpec(cPrivadaCompleta);
+            X509EncodedKeySpec x509 = new X509EncodedKeySpec(cPublicaCompleta);
+
+        } catch (Exception e) { // GENERA UNAS NUEVAS Y VUELVE A ESTE MÉTODO
+            crearClaves();
+            comprobarClaves();
+        }
+    }
+
+    public void crearClaves() {
+        try {
+            //Inicialización del generador de claves
+            KeyPairGenerator generadorClaves = KeyPairGenerator.getInstance("DSA");
+            SecureRandom generadorDeAleatorios = SecureRandom.getInstance("SHA1PRNG"); //Creo un random seguro para alimentar algo
+            //1024 Tamaño en bits de la clave
+            generadorClaves.initialize(1024, generadorDeAleatorios);
+
+            //CREAR PAREJA DE CLAVES
+            KeyPair par = generadorClaves.generateKeyPair();
+            PrivateKey clavePrivada = par.getPrivate();
+            PublicKey clavePublica = par.getPublic();
+
+            //GUARDAMOS LAS CLAVES
+            guardarClaves(clavePublica, clavePrivada);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void guardarClaves(PublicKey publica, PrivateKey privada) throws FileNotFoundException, IOException {
+
+        File destinoPrivada = new File("privada.txt");
+        File destinoPublica = new File("publica.txt");
+
+        //Guardo la clave privada
+        FileOutputStream foPri = new FileOutputStream(destinoPrivada);
+        PKCS8EncodedKeySpec pkc8Privada = new PKCS8EncodedKeySpec(privada.getEncoded());
+        foPri.write(pkc8Privada.getEncoded());
+        foPri.close();
+
+        FileOutputStream foPu = new FileOutputStream(destinoPublica);
+        X509EncodedKeySpec x509Publica = new X509EncodedKeySpec(publica.getEncoded());
+        foPu.write(x509Publica.getEncoded());
+        foPu.close();
+
+    }
+
     /**
      * @param args the command line arguments
      */
